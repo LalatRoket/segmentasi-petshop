@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Segmentasi Petshop</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1f2328;--mute:#6b7280;--line:#e4e2da;--acc:#0f766e;--accbg:#e6f4f1;--warn:#b45309;--warnbg:#fef3e2;--bad:#b91c1c;--l0:#9ca3af;--l1:#7dd3c0;--l2:#34a89a;--l3:#0f766e}
+@media(prefers-color-scheme:dark){:root{--bg:#15171a;--card:#1e2125;--ink:#e8e8e6;--mute:#9aa0a6;--line:#31353a;--acc:#4fd1bf;--accbg:#173431;--warn:#f0b35a;--warnbg:#3a2c14;--bad:#f58a8a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header,main{max-width:1050px;margin:auto;padding:0 16px}
+header{padding-top:16px}h1{font-size:19px;margin:0 0 2px}.sub{color:var(--mute);font-size:13px}
+main{padding-bottom:60px;margin-top:12px}
+.grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 2px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+@media(max-width:560px){.row{grid-template-columns:1fr}}
+.fld.full{grid-column:1/-1}
+label.f{font-size:13px;color:var(--mute);display:block;margin:6px 0 3px}
+.hint{color:var(--mute);font-size:12px;margin-top:2px}
+input[type=text],input[type=number],input[type=date],select{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.brands{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.opt{border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px;display:flex;gap:6px;align-items:center;background:var(--bg)}
+.opt:has(input:checked){background:var(--accbg);border-color:var(--acc);color:var(--acc);font-weight:600}
+.opt input{accent-color:var(--acc);margin:0}
+.sticky{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto}
+@media(max-width:860px){.sticky{position:static;max-height:none}}
+.big{display:flex;align-items:center;gap:14px}
+.badge{font-size:26px;font-weight:800;padding:6px 12px;border-radius:12px;color:#fff;background:var(--l0);min-width:120px;text-align:center}
+.b-L0{background:var(--l0)}.b-L1{background:var(--l1);color:#06332d}.b-L2{background:var(--l2)}.b-L3{background:var(--l3)}.b-none{background:var(--line);color:var(--mute)}
+.big small{display:block;color:var(--mute);font-size:12.5px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:6px 5px;border-bottom:1px solid var(--line)}th{font-size:11.5px;color:var(--mute);font-weight:600}
+.bar{display:inline-block;width:70px;height:8px;background:var(--line);border-radius:4px;vertical-align:middle;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc)}
+.na{color:var(--mute);font-style:italic}
+.segb{color:#fff;border-radius:10px;padding:10px 12px;margin-top:10px;display:grid;gap:2px}.segb b{font-size:16px}.segb span,.segb em{font-size:12.5px;font-style:normal}
+.warn{background:var(--warnbg);color:var(--warn);border-radius:8px;padding:7px 10px;font-size:12.5px;margin:6px 0}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:13px;margin-top:8px}.kv div:nth-child(odd){color:var(--mute)}
+button.p{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:12px 14px;font:inherit;font-weight:600;cursor:pointer;width:100%;margin-top:10px}
+button.p:disabled{opacity:.6}
+button.s{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font:inherit;cursor:pointer;width:100%;margin-top:8px}
+.msg{border-radius:8px;padding:8px 10px;font-size:13px;margin-top:8px}.ok{background:var(--accbg);color:var(--acc)}.err{background:var(--warnbg);color:var(--warn)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Segmentasi Petshop</h1>
+  <div class="sub">Isi data hasil observasi toko. Hasil segmentasi muncul otomatis di samping/bawah. Tekan <b>Kirim</b> setelah selesai.</div>
+</header>
+<main>
+ <div class="grid">
+  <div><form id="form" onsubmit="return false"></form></div>
+  <div class="sticky"><div class="card" id="result"></div></div>
+ </div>
+</main>
+
+<script>
+/* ====== PENGATURAN (isi setelah deploy Apps Script) ====== */
+const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycby66UBbdnKV4Eh4tqlPAdvQEA9EIlhd8eduscIlDkBiCVCzxVUjCXO1Nh0kSzStI0nzvQ/exec';
+const KODE_AKSES='compaw';
+/* ========================================================== */
+
+const cfg={
+ w:{lokasi:1,format:1,skala:1,layanan:1,digital:1,keramaian:1,ruang:1,edukasi:2},
+ opp:{mid:7,high:13,cov:0.6},
+ th:{fmtArea:20,skalaMid:50,skalaMany:150,digMid:20,digMany:100,ramaiMid:2,ramaiHigh:4,ruang1:5,ruang2:25,fitStrong:.5,fitOk:.25,rcL1:1,rcL2:3,evL3:4,brandL1:2,depthDeep:4},
+ area:{'Perumahan menengah-atas':2,'Perumahan umum':1,'Ruko / pertokoan':2,'Mall':2,'Dekat klinik hewan / taman':2,'Kampus / sekolah':1,'Lainnya':0},
+ jalan:{'Jalan raya':2,'Arteri':1,'Ruko / apartemen':1,'Dalam mall / gedung':2,'Gang':0},
+ edu:{'Pasif (hanya transaksi)':0,'Aktif (menyapa, tanya kebutuhan hewan)':1,'Merekomendasikan produk':2},
+ tierFit:{'Mainstream':'Kuat','Entry premium':'Cukup','Premium':'Lemah'},
+ brands:['Happy Cat','Kitchen Flavor','Majes','MrVet','Deli-Joy','Purina ONE','Bite of Wild','Nature Bridge'],
+ seg:{L0:{High:'Development',Mid:'Minimal',Low:'Minimal'},L1:{High:'Development',Mid:'Maintain',Low:'Minimal'},L2:{High:'Core',Mid:'Core',Low:'Maintain'},L3:{High:'Hero',Mid:'Core',Low:'Core'}},
+ grp:{Hero:'Hero atau Core',Core:'Hero atau Core',Development:'Development atau Maintain',Maintain:'Development atau Maintain',Minimal:'Minimal'},
+ acq:{'Hero atau Core':{Mudah:'Kejar sekarang',Sedang:'Kejar terencana',Sulit:'Putuskan khusus'},'Development atau Maintain':{Mudah:'Uji murah',Sedang:'Rencanakan',Sulit:'Tunda'},'Minimal':{Mudah:'Layani standar',Sedang:'Oportunistik',Sulit:'Abaikan'}}
+};
+const IND=[['lokasi','Lokasi'],['format','Format toko'],['skala','Skala makanan'],['layanan','Layanan'],['digital','Popularitas digital'],['keramaian','Keramaian'],['ruang','Ruang engagement'],['edukasi','Edukasi staf']];
+const blank=v=>v===''||v==null;
+const num=v=>blank(v)||isNaN(+v)?null:+v;
+const N=v=>num(v)??0;
+function compute(s,c){
+  if(blank(s.B))return null;
+  const r={};
+  const ev=['I','J','K','L'].map(k=>s[k]);const evAns=ev.filter(x=>!blank(x)).length;
+  r.evAns=evAns;r.ev=evAns?ev.filter(x=>x==='Ya').length:null;
+  const cnt=[num(s.G),num(s.H),r.ev].filter(x=>x!==null).length;
+  if(!cnt)r.level=null;
+  else if(N(s.H)>=c.th.rcL2&&N(r.ev)>=c.th.evL3)r.level='L3';
+  else if(N(s.H)>=c.th.rcL2)r.level='L2';
+  else if(N(s.G)>=c.th.brandL1||N(s.H)>=c.th.rcL1)r.level='L1';
+  else r.level='L0';
+  r.depth=blank(s.G)?'':(N(s.G)>=c.th.depthDeep?'Dalam':N(s.G)>=c.th.brandL1?'Cukup':'Tipis');
+  const sc={};
+  sc.lokasi=(blank(s.M)||blank(s.N)||c.area[s.M]===undefined||c.jalan[s.N]===undefined)?null:Math.round((c.area[s.M]+c.jalan[s.N])/2);
+  sc.format=(blank(s.O)||blank(s.P))?null:(s.O==='Ya'?1:0)+(N(s.P)>c.th.fmtArea?1:0);
+  sc.skala=blank(s.R)?null:(N(s.R)>c.th.skalaMany?2:N(s.R)>=c.th.skalaMid?1:0);
+  sc.layanan=blank(s.S)?null:((N(s.S)>=2||s.T==='Ya')?2:N(s.S)===1?1:0);
+  sc.digital=blank(s.U)?null:(N(s.U)>c.th.digMany?2:N(s.U)>=c.th.digMid?1:0);
+  sc.keramaian=blank(s.V)?null:(N(s.V)>=c.th.ramaiHigh?2:N(s.V)>=c.th.ramaiMid?1:0);
+  sc.ruang=(blank(s.X)&&blank(s.Y))?null:((N(s.X)+N(s.Y))>c.th.ruang2?2:(N(s.X)+N(s.Y))>c.th.ruang1?1:0);
+  sc.edukasi=(blank(s.W)||c.edu[s.W]===undefined)?null:c.edu[s.W];
+  r.sc=sc;
+  let poin=0,max=0,total=0;
+  IND.forEach(([k])=>{const w=+c.w[k]||0;total+=2*w;poin+=N(sc[k])*w;if(sc[k]!==null)max+=2*w});
+  r.poin=poin;r.max=max;r.total=total;
+  r.ax=max>0?poin/max*total:null;
+  r.cov=total?max/total:0;
+  r.opp=(r.ax===null||r.cov<c.opp.cov)?'Data kurang':(r.ax>=c.opp.high?'High':r.ax>=c.opp.mid?'Mid':'Low');
+  r.label=(r.level&&r.opp!=='Data kurang')?r.level+'-'+r.opp:'';
+  r.seg=r.label?((c.seg[r.level]||{})[r.opp]||''):'';
+  r.ease=(blank(s.AA)||blank(s.AB)||blank(s.AC))?'':((s.AA==='Tidak ada akses'||s.AB==='Terikat eksklusif'||s.AC==='Tidak')?'Sulit':(s.AA==='Langsung'&&s.AB==='Tidak ada'&&s.AC==='Ya')?'Mudah':'Sedang');
+  r.prio=!r.seg?'':(s.D==='Pelanggan'?'Pelanggan: kelola':(!r.ease?'Isi kemudahan akuisisi':(((c.acq[c.grp[r.seg]]||{})[r.ease])||'')));
+  const fit=v=>blank(v)?'':(+v>=c.th.fitStrong?'Kuat':+v>=c.th.fitOk?'Cukup':'Lemah');
+  r.fit={catto:fit(s.AD),nouvel:fit(s.AE),paw:blank(s.AF)?'':(s.AF==='Ya'?'Syarat fisik terpenuhi':'Tidak ada freezer'),vet:blank(s.T)?'':(s.T==='Ya'?'Ada klinik':'Tidak ada klinik'),mid:blank(s.AG)?'':(c.tierFit[s.AG]||'')};
+  return r;
+}
+
+const YN=['','Ya','Tidak'];
+const AKSES=['','Langsung','Perantara','Tidak ada akses'],HAMB=['','Tidak ada','Sebagian (display / program kompetitor)','Terikat eksklusif'],ENG=['','Tidak','Ya, belum terealisasi','Inisiatif sendiri'];
+const F=[
+ {k:'B',g:'Identitas',l:'Nama toko',t:'text',full:1},
+ {k:'C',l:'Kota / area',t:'text'},
+ {k:'D',l:'Status',t:'sel',o:['','Prospek','Pelanggan']},
+ {k:'E',l:'Tanggal kunjungan',t:'date'},
+ {k:'F',l:'Penilai (nama salesman)',t:'text'},
+ {k:'G',g:'Level — produk di rak',l:'Jumlah merek entry premium di rak',t:'num',h:'Terisi otomatis dari centang merek di atas; boleh diketik manual.',brands:1},
+ {k:'H',l:'Jumlah SKU Royal Canin / Pro Plan',t:'num',int:1},
+ {k:'I',l:'Bukti L3 1: Brand menonjol? (setinggi mata / facing banyak / materi brand)',t:'sel',o:YN,full:1},
+ {k:'J',l:'Bukti L3 2: SKU premium lengkap? (varian tidak hanya 1–2 SKU)',t:'sel',o:YN,full:1},
+ {k:'K',l:'Bukti L3 3: Ada rak / area khusus premium?',t:'sel',o:YN,full:1},
+ {k:'L',l:'Bukti L3 4: Dikelola serius? (rapi, tidak berdebu/kedaluwarsa, stok penuh; label harga BUKAN syarat)',t:'sel',o:YN,full:1},
+ {k:'M',g:'Place',l:'Area sekitar (pilih satu terdekat)',t:'sel',o:'area'},
+ {k:'N',l:'Kelas jalan',t:'sel',o:'jalan',h:'Jalan raya = arus padat · Arteri = muat 2 mobil · Gang = muat 1 mobil.'},
+ {k:'O',l:'Ber-AC & tertutup?',t:'sel',o:YN},
+ {k:'P',l:'Luas area jual + pajangan (m²)',t:'num',h:'Ukur dengan langkah/meteran.'},
+ {k:'Q',l:'Lebar muka (m) — dicatat saja',t:'num'},
+ {k:'R',g:'Potential',l:'Jumlah SKU makanan di rak',t:'num',int:1},
+ {k:'S',l:'Jumlah layanan (grooming, hotel, lainnya)',t:'num',int:1},
+ {k:'T',l:'Ada dokter hewan / klinik?',t:'sel',o:YN},
+ {k:'U',l:'Jumlah ulasan Google',t:'num',int:1},
+ {k:'V',g:'People',l:'Customer di toko (saat tiba + 10 menit)',t:'num',int:1},
+ {k:'W',l:'Edukasi staf (amati staf melayani customer LAIN)',t:'sel',o:'edu',h:'Catat apa yang dilihat di kolom catatan.'},
+ {k:'X',g:'Engagement',l:'Ruang kosong dalam toko (m²)',t:'num'},
+ {k:'Y',l:'Parkiran depan toko yang boleh dipakai (m²)',t:'num',h:'Bukan parkiran bersama ruko lain.'},
+ {k:'Z',l:'Keinginan engagement pemilik (opsional)',t:'sel',o:ENG,full:1},
+ {k:'AA',g:'Akuisisi',l:'Akses ke pengambil keputusan',t:'sel',o:AKSES},
+ {k:'AB',l:'Hambatan kompetitor',t:'sel',o:HAMB},
+ {k:'AC',l:'Dijangkau distributor?',t:'sel',o:YN},
+ {k:'AD',g:'Kecocokan brand',l:'Porsi rak kucing (%)',t:'pct'},
+ {k:'AE',l:'Porsi rak anjing (%)',t:'pct'},
+ {k:'AF',l:'Ada freezer?',t:'sel',o:YN},
+ {k:'AG',l:'Tier dominan di rak',t:'sel',o:'tierFit'},
+ {k:'AH',g:'Bukti',l:'Foto bukti sudah diambil? (rak, muka toko, ruang) — wajib',t:'sel',o:YN},
+ {k:'AI',l:'Catatan',t:'text',full:1}
+];
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const optsOf=f=>typeof f.o==='string'?['',...Object.keys(cfg[f.o])]:f.o;
+
+function renderForm(){
+  let h='',cur='',open=false;
+  F.forEach(f=>{
+    if(f.g&&f.g!==cur){if(open)h+='</div></div>';cur=f.g;open=true;h+=`<div class="card"><h2>${f.g}</h2><div class="row" style="margin-top:6px">`;
+      if(f.k==='G')h+=`<div class="fld full"><label class="f">Merek entry premium yang terlihat di rak</label><div class="brands">`+cfg.brands.map(b=>`<label class="opt"><input type="checkbox" name="brand" value="${esc(b)}">${esc(b)}</label>`).join('')+'</div></div>'}
+    let inp='';
+    if(f.t==='sel')inp=`<select id="f_${f.k}">`+optsOf(f).map(o=>`<option value="${esc(o)}">${esc(o)||'— pilih —'}</option>`).join('')+'</select>';
+    else if(f.t==='num')inp=`<input type="number" inputmode="decimal" min="0" step="${f.int?1:'any'}" id="f_${f.k}">`;
+    else if(f.t==='pct')inp=`<input type="number" inputmode="decimal" min="0" max="100" step="any" id="f_${f.k}" placeholder="0–100">`;
+    else inp=`<input type="${f.t}" id="f_${f.k}">`;
+    h+=`<div class="fld${f.full?' full':''}"><label class="f" for="f_${f.k}">${f.l}</label>${inp}${f.h?`<div class="hint">${f.h}</div>`:''}</div>`;
+  });
+  $('#form').innerHTML=h+'</div></div>';
+  try{const p=localStorage.getItem('penilai');if(p)$('#f_F').value=p}catch(e){}
+  $('#f_E').value=new Date().toISOString().slice(0,10);
+}
+function readState(){
+  const s={};F.forEach(f=>{const e=$('#f_'+f.k);let v=e?e.value:'';if(f.t==='pct'&&v!=='')v=String(+v/100);s[f.k]=v});return s;
+}
+const bar=n=>n===null?'<span class="na">tidak dinilai</span>':`<span class="bar"><i style="width:${n*50}%"></i></span> <b>${n}</b>/2`;
+const SEGC={Hero:'#0f766e',Core:'#1d7fb5',Development:'#d9a441',Maintain:'#6b7280',Minimal:'#9ca3af'};
+const SEGT={Hero:'Toko unggulan: potensi tinggi dengan penetrasi premium kuat.',Core:'Toko inti: layak mendapat perhatian dan program rutin.',Development:'Toko berkembang: potensi ada, rak premium masih tipis.',Maintain:'Toko dijaga: pertahankan dengan usaha standar.',Minimal:'Toko minimal: layani seperlunya, jangan investasi besar.'};
+function warnings(s,r){
+  const w=[];
+  if(!blank(s.AD)&&!blank(s.AE)&&+s.AD+ +s.AE>1.05)w.push('Porsi rak kucing + anjing lebih dari 100%.');
+  if(r.evAns>0&&r.evAns<4)w.push(`Bukti L3 baru ${r.evAns}/4 yang diisi. Yang kosong dihitung bukan "Ya".`);
+  if(s.AH!=='Ya')w.push('Foto bukti belum diambil (wajib untuk setiap toko).');
+  if(blank(s.F))w.push('Isi nama penilai.');
+  return w;
+}
+let cur=null,sending=false;
+function renderResult(){
+  const s=readState(),r=compute(s,cfg);cur={s,r};
+  if(!r){$('#result').innerHTML='<h2>Hasil</h2><div class="hint">Isi <b>Nama toko</b> untuk mulai menghitung.</div>'+outboxHtml();return}
+  let h=`<div class="big"><div class="badge ${r.label?'b-'+r.level:'b-none'}">${esc(r.label||'—')}</div><div><b>${r.label?esc(r.seg):'Belum ada label'}</b><small>${r.level?`Level ${r.level}`:'Level belum bisa ditentukan'}${r.depth?` · entry premium ${r.depth}`:''}</small><small>${r.opp==='Data kurang'?'<span style="color:var(--bad)">Data kurang</span> — lengkapi isian ('+(r.cov*100).toFixed(0)+'% terisi, minimal '+(cfg.opp.cov*100).toFixed(0)+'%)':'Opportunity '+r.opp}</small></div></div>`;
+  if(r.seg)h+=`<div class="segb" style="background:${SEGC[r.seg]||'#6b7280'}"><b>${esc(r.seg)}</b><span>${esc(SEGT[r.seg]||'')}</span>${r.prio?`<em>Tindakan: ${esc(r.prio)}</em>`:''}</div>`;
+  h+='<table style="margin-top:8px"><tr><th>Indikator</th><th>Skor</th></tr>';
+  IND.forEach(([k,n])=>{h+=`<tr><td>${n}</td><td>${bar(r.sc[k])}</td></tr>`});
+  h+='</table>';
+  h+=`<div class="kv"><div>Kemudahan akuisisi</div><div>${r.ease||'<span class="na">belum lengkap</span>'}</div><div>Fit Catto</div><div>${r.fit.catto||'–'}</div><div>Fit Nouvel</div><div>${r.fit.nouvel||'–'}</div><div>Fit Pawmeals</div><div>${r.fit.paw||'–'}</div><div>Fit Vet Exclusive</div><div>${r.fit.vet||'–'}</div><div>Fit mid-price baru</div><div>${r.fit.mid||'–'}</div></div>`;
+  warnings(s,r).forEach(w=>h+=`<div class="warn">${w}</div>`);
+  h+='<button class="p" id="btnSend">Kirim ke atasan</button><button class="s" id="btnNew">Toko baru (kosongkan form)</button><div id="sendMsg"></div>'+outboxHtml();
+  $('#result').innerHTML=h;
+}
+
+/* ---------- Kirim ke Google Sheet (dengan antrean bila sinyal jelek) ---------- */
+const getBox=()=>{try{return JSON.parse(localStorage.getItem('outbox')||'[]')}catch(e){return[]}};
+const setBox=b=>{try{localStorage.setItem('outbox',JSON.stringify(b))}catch(e){}};
+const outboxHtml=()=>{const n=getBox().length;return n?`<div class="msg err">${n} data belum terkirim (sinyal bermasalah). <button class="s" id="btnRetry">Kirim ulang sekarang</button></div>`:''};
+function payload(s,r){
+  return {kode:KODE_AKSES,id:Date.now()+'-'+Math.random().toString(36).slice(2,6),
+    fields:F.map(f=>s[f.k]??''),
+    hasil:[r?.level||'',r?.opp||'',r?.label||'',r?.seg||'',r?.prio||'',r&&r.ax!==null?+r.ax.toFixed(1):'',r?.ease||'']};
+}
+async function postOne(p){
+  const res=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});
+  const j=await res.json();if(!j.ok)throw new Error(j.error||'gagal');return true;
+}
+async function flush(){
+  let box=getBox(),left=[];
+  for(const p of box){try{await postOne(p)}catch(e){left.push(p)}}
+  setBox(left);return left.length;
+}
+document.addEventListener('click',async e=>{
+  const id=e.target.id;
+  if(id==='btnNew'){renderForm();renderResult();window.scrollTo(0,0)}
+  if(id==='btnRetry'){e.target.disabled=true;await flush();renderResult()}
+  if(id==='btnSend'){
+    if(sending)return;const {s,r}=cur;
+    if(blank(s.B)||blank(s.F)){(blank(s.F)?$('#f_F'):$('#f_B')).focus();return}
+    try{localStorage.setItem('penilai',s.F)}catch(_){}
+    sending=true;e.target.disabled=true;e.target.textContent='Mengirim…';
+    const p=payload(s,r);let ok=false;
+    try{ok=await postOne(p)}catch(_){setBox([...getBox(),p])}
+    sending=false;
+    $('#sendMsg').innerHTML=ok?'<div class="msg ok">Terkirim ✓ — data masuk ke atasan.</div>':'<div class="msg err">Belum terkirim (sinyal/URL). Data disimpan di HP dan akan dikirim ulang saat Anda tekan "Kirim ulang".</div>';
+    e.target.disabled=false;e.target.textContent='Kirim ke atasan';
+    if(ok&&getBox().length)flush();
+  }
+});
+const sync=()=>{const b=$('#f_G');if(b)b.value=$$('input[name=brand]:checked').length};
+$('#form').addEventListener('input',e=>{if(e.target.name==='brand')sync();renderResult()});
+$('#form').addEventListener('change',e=>{if(e.target.name==='brand')sync();renderResult()});
+renderForm();renderResult();
+if(getBox().length&&APPS_SCRIPT_URL.startsWith('http'))flush().then(renderResult);
+</script>
+</body>
+</html>
