@@ -57,11 +57,9 @@ button.s{background:var(--card);color:var(--ink);border:1px solid var(--line);bo
  </div>
 </main>
 
+<script src="config.js"></script>
+<script src="kota.js"></script>
 <script>
-/* ====== PENGATURAN (isi setelah deploy Apps Script) ====== */
-const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycby66UBbdnKV4Eh4tqlPAdvQEA9EIlhd8eduscIlDkBiCVCzxVUjCXO1Nh0kSzStI0nzvQ/exec';
-const KODE_AKSES='compaw';
-/* ========================================================== */
 
 const cfg={
  w:{lokasi:1,format:1,skala:1,layanan:1,digital:1,keramaian:1,ruang:1,edukasi:2},
@@ -121,7 +119,7 @@ const YN=['','Ya','Tidak'];
 const AKSES=['','Langsung','Perantara','Tidak ada akses'],HAMB=['','Tidak ada','Sebagian (display / program kompetitor)','Terikat eksklusif'],ENG=['','Tidak','Ya, belum terealisasi','Inisiatif sendiri'];
 const F=[
  {k:'B',g:'Identitas',l:'Nama toko',t:'text',full:1},
- {k:'C',l:'Kota / area',t:'text'},
+ {k:'C',l:'Kab / Kota (ketik untuk mencari)',t:'city'},
  {k:'D',l:'Status',t:'sel',o:['','Prospek','Pelanggan']},
  {k:'E',l:'Tanggal kunjungan',t:'date'},
  {k:'F',l:'Penilai (nama salesman)',t:'text'},
@@ -167,6 +165,7 @@ function renderForm(){
     let inp='';
     if(f.t==='sel')inp=`<select id="f_${f.k}">`+optsOf(f).map(o=>`<option value="${esc(o)}">${esc(o)||'— pilih —'}</option>`).join('')+'</select>';
     else if(f.t==='num')inp=`<input type="number" inputmode="decimal" min="0" step="${f.int?1:'any'}" id="f_${f.k}">`;
+    else if(f.t==='city')inp=`<input type="text" id="f_C" list="cityList" autocomplete="off" autocapitalize="characters" placeholder="mis. BANDUNG"><datalist id="cityList">`+CITIES.map(c=>`<option value="${esc(c)}">`).join('')+'</datalist>';
     else if(f.t==='pct')inp=`<input type="number" inputmode="decimal" min="0" max="100" step="any" id="f_${f.k}" placeholder="0–100">`;
     else inp=`<input type="${f.t}" id="f_${f.k}">`;
     h+=`<div class="fld${f.full?' full':''}"><label class="f" for="f_${f.k}">${f.l}</label>${inp}${f.h?`<div class="hint">${f.h}</div>`:''}</div>`;
@@ -187,6 +186,7 @@ function warnings(s,r){
   if(r.evAns>0&&r.evAns<4)w.push(`Bukti L3 baru ${r.evAns}/4 yang diisi. Yang kosong dihitung bukan "Ya".`);
   if(s.AH!=='Ya')w.push('Foto bukti belum diambil (wajib untuk setiap toko).');
   if(blank(s.F))w.push('Isi nama penilai.');
+  if(!blank(s.C)&&!CITIES.includes(s.C.trim().toUpperCase()))w.push('Kab/Kota belum sesuai daftar. Pilih dari saran yang muncul saat mengetik.');
   return w;
 }
 let cur=null,sending=false;
@@ -228,6 +228,8 @@ document.addEventListener('click',async e=>{
   if(id==='btnRetry'){e.target.disabled=true;await flush();renderResult()}
   if(id==='btnSend'){
     if(sending)return;const {s,r}=cur;
+    s.C=(s.C||'').trim().toUpperCase();
+    if(!CITIES.includes(s.C)){$('#f_C').focus();$('#sendMsg').innerHTML='<div class="msg err">Pilih Kab/Kota dari daftar sebelum mengirim.</div>';return}
     if(blank(s.B)||blank(s.F)){(blank(s.F)?$('#f_F'):$('#f_B')).focus();return}
     try{localStorage.setItem('penilai',s.F)}catch(_){}
     sending=true;e.target.disabled=true;e.target.textContent='Mengirim…';
